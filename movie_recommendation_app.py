@@ -39,7 +39,6 @@ class Exam(QWidget, form_window):
             recommendation = self.recommendation_by_movie_title(key_word)
         else:
             recommendation = self.recommendation_by_keyword(key_word)
-            recommendation = '\n'.join(list(recommendation))
         if recommendation:
             self.lbl_reco.setText(recommendation)
 
@@ -56,7 +55,9 @@ class Exam(QWidget, form_window):
             sim_word = self.embedding_model.wv.most_similar(key_word, topn=10)
         except:
             self.lbl_reco.setText('모르겠는데용?')
-            return
+            if key_word == '':
+                self.lbl_reco.setText('입력하세용')
+            return 0
         words = [key_word]
 
         for word, _ in sim_word:
@@ -73,6 +74,7 @@ class Exam(QWidget, form_window):
         sentence_vec = self.Tfidf.transform([sentence])
         cosine_sim = linear_kernel(sentence_vec, self.Tfidf_matrix)
         recommendation = self.getRecommendation(cosine_sim)
+        recommendation = '\n'.join(list(recommendation))
         return recommendation
 
     def recommendation_by_movie_title(self, title):
