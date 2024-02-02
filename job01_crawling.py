@@ -42,13 +42,13 @@ driver.execute_script('arguments[0].click()', button_ok)
 time.sleep(1)
 
 
-for i in range(12):
+for i in range(25):
     driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
     time.sleep(1)
 
 list_review_url = []
 movie_titles = []
-for i in range(1,501):
+for i in range(51,101):
     base = driver.find_element(By.XPATH, f'//*[@id="contents"]/div/div/div[3]/div[2]/div[{i}]/a').get_attribute("href")
     list_review_url.append(f"{base}/reviews")
     title = driver.find_element(By.XPATH, f'//*[@id="contents"]/div/div/div[3]/div[2]/div[{i}]/div/div[1]').text
@@ -60,29 +60,41 @@ print(movie_titles[:5])
 print(len(movie_titles))
 
 
-
+reviews = []
 for url in list_review_url:
     driver.get(url)
-    time.sleep(1)
+    time.sleep(0.5)
     review = ''
-    for i in range(1,10):
+    for i in range(1,31):
         review_title_xpath = '//*[@id="contents"]/div[2]/div[2]/div[{}]/div/div[3]/a[1]/div'.format(i)
         review_more_xpath = '//*[@id="contents"]/div[2]/div[2]/div[{}]/div/div[3]/div/button'.format(i)
         try:
             review_more = driver.find_element(By.XPATH, review_more_xpath)
-            print('debug01')
             driver.execute_script('arguments[0].click()', review_more)
-            print('debug02')
             time.sleep(1)
             review_xpath = '//*[@id="contents"]/div[2]/div[1]/div/section[2]/div/div'
             review = review + ' ' + driver.find_element(By.XPATH, review_xpath).text
-            print('debug03')
             print(review)
             driver.back()
             time.sleep(1)
+
+        except NoSuchElementException as e:
+            print('더보기',e)
+            try:
+                review = review + ' ' + driver.find_element(By.XPATH, review_title_xpath).text
+            except:
+                print('review title error')
+
+        except StaleElementReferenceException as e:
+            print('stale', e)
+            time.sleep(1)
         except:
-            review = review + ' ' + driver.find_element(By.XPATH, review_title_xpath).text
-            print('debug04')
-            print(review)
-    time.sleep(5)
+            print('error')
+    print(review)
+    reviews.append(review)
+    time.sleep(1)
+
+df = pd.DataFrame({'titles': movie_titles, 'reviews': reviews})
+today = datetime.datetime.now().strftime('%Y%m%d')
+df.to_csv('./crawling_data/reviews_100.csv', index=False)
 
